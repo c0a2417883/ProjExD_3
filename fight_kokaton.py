@@ -157,6 +157,32 @@ class Bomb:
         screen.blit(self.img, self.rct)
 
 
+class Score:
+    """
+    スコアを表示させるクラス
+    """
+    def __init__(self, score: int):
+        """
+        スコアのフォントや色の設定．文字列Surfaceの生成を行う
+        引数 score：点数
+        """
+        self.font = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 30)
+        score = 0
+        self.img = self.font.render(f"スコア：{score}", 0, (0, 0, 255))
+        self.rct = self.img.get_rect()
+        self.rct.center = (100, HEIGHT-50)
+
+    def update(self, screen: pg.Surface):
+        """
+        現在のスコアを表示させる文字列Surfaceの生成
+        スクリーンにblit
+        """
+        screen.blit(self.img, self.rct)
+
+
+
+
+
 def main():
     pg.display.set_caption("たたかえ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))    
