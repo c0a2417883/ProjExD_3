@@ -161,7 +161,7 @@ class Score:
     """
     スコアを表示させるクラス
     """
-    def __init__(self, score: int):
+    def __init__(self):
         """
         スコアのフォントや色の設定．文字列Surfaceの生成を行う
         引数 score：点数
@@ -170,13 +170,16 @@ class Score:
         score = 0
         self.img = self.font.render(f"スコア：{score}", 0, (0, 0, 255))
         self.rct = self.img.get_rect()
+        self.score = score
         self.rct.center = (100, HEIGHT-50)
 
-    def update(self, screen: pg.Surface):
+    def update(self, num: int, screen: pg.Surface):
         """
         現在のスコアを表示させる文字列Surfaceの生成
         スクリーンにblit
         """
+        self.score = num
+        self.img = self.font.render(f"スコア：{num}", 0, (0, 0, 255))
         screen.blit(self.img, self.rct)
 
 
@@ -189,6 +192,8 @@ def main():
     bg_img = pg.image.load("fig/pg_bg.jpg")
     bird = Bird((300, 200))
     bombs = [Bomb((255, 0, 0), 10) for _ in range(NUM_OF_BOMBS)]
+    score = Score()
+    game_score = 0
     clock = pg.time.Clock()
     beam = None                                 
     tmr = 0
@@ -200,7 +205,6 @@ def main():
                 # スペースキー押下でBeamクラスのインスタンス生成
                 beam = Beam(bird)            
         screen.blit(bg_img, [0, 0])
-        
         if beam is not None:
         #     if bird.rct.colliderect(bomb.rct):
         #         # ゲームオーバー時に，こうかとん画像を切り替え，1秒間表示させる
@@ -238,12 +242,15 @@ def main():
                     beam = None
                     bombs[i] = None
                     bird.change_img(6, screen)
+                    game_score += 1
+                    pg.display.update()
                     break
-
+                    
 
         bombs = [bomb for bomb in bombs if bomb is not None]
         key_lst = pg.key.get_pressed()
         bird.update(key_lst, screen)
+        score.update(game_score, screen)
         if beam is not None:
             beam.update(screen)
         for bomb in bombs:
