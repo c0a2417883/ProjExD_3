@@ -194,6 +194,7 @@ def main():
     bombs = [Bomb((255, 0, 0), 10) for _ in range(NUM_OF_BOMBS)]
     score = Score()
     game_score = 0
+    beam_list = []
     clock = pg.time.Clock()
     beam = None                                 
     tmr = 0
@@ -203,9 +204,10 @@ def main():
                 return
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                 # スペースキー押下でBeamクラスのインスタンス生成
-                beam = Beam(bird)            
+                beam = Beam(bird)
+                beam_list.append(beam)            
         screen.blit(bg_img, [0, 0])
-        if beam is not None:
+        if beam_list is not None:
         #     if bird.rct.colliderect(bomb.rct):
         #         # ゲームオーバー時に，こうかとん画像を切り替え，1秒間表示させる
         #         bird.change_img(8, screen)
@@ -237,24 +239,35 @@ def main():
                     return
 
             for i, bomb in enumerate(bombs):
-                if beam.rct.colliderect(bomb.rct):
-                    # 爆弾とビームが衝突した際にBeamインスタンス，Bombインスタンスを消滅
-                    beam = None
-                    bombs[i] = None
-                    bird.change_img(6, screen)
-                    game_score += 1
-                    pg.display.update()
-                    break
+                if bomb is not None:
+                    for b, beam_obj in enumerate(beam_list):
+                        if beam_obj is not None and beam_obj.rct.colliderect(bomb.rct):
+                            # 爆弾とビームが衝突した際にBeamインスタンス，Bombインスタンスを消滅
+                            beam_list[b] = None
+                            bombs[i] = None
+                            bird.change_img(6, screen)
+                            game_score += 1
+                            pg.display.update()
+                            break
                     
-
+        
+        # Noneでない要素だけを残したい新しいリストを作成，再代入
+        new_beam_list = []
+        for beam_obj in beam_list:
+            if beam_obj is not None:
+                beam_obj.update(screen)
+                if check_bound(beam_obj.rct) == (True, True):
+                    new_beam_list.append(beam_obj)
+        beam_list = new_beam_list
         bombs = [bomb for bomb in bombs if bomb is not None]
         key_lst = pg.key.get_pressed()
         bird.update(key_lst, screen)
         score.update(game_score, screen)
-        if beam is not None:
-            beam.update(screen)
+        # if beam in beam_list:
+        #     beam.update(screen)
         for bomb in bombs:
             bomb.update(screen)
+
         pg.display.update()
         tmr += 1
         clock.tick(50)
