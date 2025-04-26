@@ -183,7 +183,30 @@ class Score:
         screen.blit(self.img, self.rct)
 
 
+class Explosion:
+    """
+    爆発エフェクトを表示させるクラス
+    """
+    def __init__(self, xy: tuple[int, int], time: int):
+        self.img0 = pg.image.load("fig/explosion.gif")
+        self.img_flip = pg.transform.flip(self.img0, True, True) # 上下左右反転
+        self.imgs = [self.img0, self.img_flip]
+        self.index = 0
+        self.img = self.imgs[self.index]
+        self.rct = self.img.get_rect()
+        self.rct.center = xy
+        self.life = time
 
+    def update(self, screen: pg.Surface):
+        """
+        爆発経過時間lifeを１減算
+        爆発経過時間lifeが正なら，Surfaceリストを交互に切り替えて爆発を演出
+        """
+        self.life -= 1
+        if self.life > 0:
+            self.img = self.imgs[self.index % len(self.imgs)]  # あまりを計算
+            screen.blit(self.img, self.rct)
+            self.index += 1
 
 
 def main():
@@ -195,6 +218,7 @@ def main():
     score = Score()
     game_score = 0
     beam_list = []
+    explosion_list = []
     clock = pg.time.Clock()
     beam = None                                 
     tmr = 0
@@ -243,6 +267,8 @@ def main():
                     for b, beam_obj in enumerate(beam_list):
                         if beam_obj is not None and beam_obj.rct.colliderect(bomb.rct):
                             # 爆弾とビームが衝突した際にBeamインスタンス，Bombインスタンスを消滅
+                            explosion = Explosion(bomb.rct.center, 15)
+                            explosion_list.append(explosion)
                             beam_list[b] = None
                             bombs[i] = None
                             bird.change_img(6, screen)
@@ -260,10 +286,18 @@ def main():
                     new_beam_list.append(beam_obj)
         beam_list = new_beam_list
         bombs = [bomb for bomb in bombs if bomb is not None]
+        
+        new_explosion_list = []
+        for explosion in explosion_list:
+            if explosion.life > 0:
+                new_explosion_list.append(explosion)
+            explosion.update(screen)
+        explosion_list = new_explosion_list
+
         key_lst = pg.key.get_pressed()
         bird.update(key_lst, screen)
         score.update(game_score, screen)
-        # if beam in beam_list:
+        # if beam_obj in beam_list:
         #     beam.update(screen)
         for bomb in bombs:
             bomb.update(screen)
