@@ -214,6 +214,9 @@ class Gameclear:
         pg.draw.rect(self.gameover_sur, (0, 0, 0), pg.Rect(0, 0, WIDTH, HEIGHT))
     
     def update(self, screen: pg.Surface):
+        """
+        ゲームクリアの文字とこうかとんを表示
+        """
         screen.blit(self.gameover_sur, [0, 0])
         screen.blit(self.gameover_txt, [330, 300])
         screen.blit(self.cry, [261, 290])
