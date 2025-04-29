@@ -200,6 +200,26 @@ class Explosion:
             self.index += 1
 
 
+class Gameclear:
+    """
+    独自の機能：ゲームクリアを表示させるクラス
+    """
+    def __init__(self):
+        self.gameover_sur = pg.Surface((WIDTH, HEIGHT))
+        self.font = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 60)
+        self.cry = pg.image.load("fig/2.png") 
+        self.cry2 = pg.image.load("fig/5.png") 
+        self.gameover_txt = self.font.render("GAME CLEAR !!!",True,(255, 255, 0))
+        self.gameover_sur.set_alpha(130)
+        pg.draw.rect(self.gameover_sur, (0, 0, 0), pg.Rect(0, 0, WIDTH, HEIGHT))
+    
+    def update(self, screen: pg.Surface):
+        screen.blit(self.gameover_sur, [0, 0])
+        screen.blit(self.gameover_txt, [330, 300])
+        screen.blit(self.cry, [261, 290])
+        screen.blit(self.cry2, [763, 292])
+
+
 def main():
     pg.display.set_caption("たたかえ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))    
@@ -210,6 +230,7 @@ def main():
     game_score = 0
     beam_list = []
     explosion_list = []
+    game_clear = Gameclear()
     clock = pg.time.Clock()
     beam = None                                 
     tmr = 0
@@ -266,10 +287,15 @@ def main():
         key_lst = pg.key.get_pressed()
         bird.update(key_lst, screen)
         score.update(game_score, screen)
-        # if beam_obj in beam_list:
-        #     beam.update(screen)
         for bomb in bombs:
             bomb.update(screen)
+
+        #  独自の機能：ゲームクリアを表示
+        if game_score == NUM_OF_BOMBS:
+            game_clear.update(screen)
+            pg.display.update()
+            time.sleep(3)
+            return
 
         pg.display.update()
         tmr += 1
