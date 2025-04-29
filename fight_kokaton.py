@@ -8,7 +8,7 @@ import pygame as pg
 
 WIDTH = 1100  # ゲームウィンドウの幅
 HEIGHT = 650  # ゲームウィンドウの高さ
-NUM_OF_BOMBS = 10
+NUM_OF_BOMBS = 5
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -88,21 +88,6 @@ class Bird:
         screen.blit(self.img, self.rct)
 
 
-# ビームクラス:
-    # """
-    # こうかとんが放つビームに関するクラス
-    # """
-    # def イニシャライザ(self, bird:"Bird"):
-    #     """
-    #     ビーム画像Surfaceを生成する
-    #     引数 bird：ビームを放つこうかとん（Birdインスタンス）
-    #     """
-    #     self.img = pg.画像のロード(f"fig/beam.png")
-    #     self.rct = self.img.Rectの取得()
-    #     self.ビームの中心縦座標 = こうかとんの中心縦座標
-    #     self.ビームの左座標 = こうかとんの右座標
-    #     self.vx, self.vy = +5, 0
-
 class Beam:
     """
     こうかとんが放つビームに関するクラス
@@ -112,18 +97,16 @@ class Beam:
         ビーム画像Surfaceを生成する
         引数 bird：ビームを放つこうかとん（Birdインスタンス）
         """
-        self.img = pg.image.load(f"fig/beam.png")
-        self.rct = self.img.get_rect()
-        self.rct.left = bird.rct.right
+        self.img = pg.image.load(f"fig/beam.png")  # こうかとんSurface
+        self.rct = self.img.get_rect()  # こうかとんRect
+        self.rct.left = bird.rct.right  # ビームの左座標 = こうかとんの右座標
         self.vx, self.vy = bird.dire  # こうかとんの向きを速度ベクトルに代入
-        tan = math.atan2(-self.vx, -self.vy) 
-        angle = math.degrees(tan) + 90
+        tan = math.atan2(-self.vy, self.vx) 
+        angle = math.degrees(tan)
         self.img = pg.transform.rotozoom(self.img, angle, 1.0)
-
         self.rct.centerx = bird.rct.centerx + (bird.rct.width * (self.vx / 5))
         self.rct.centery = bird.rct.centery + (bird.rct.height * (self.vy / 5))
         
-
     def update(self, screen: pg.Surface):
         """
         ビームを速度ベクトルself.vx, self.vyに基づき移動させる
@@ -222,7 +205,7 @@ def main():
     screen = pg.display.set_mode((WIDTH, HEIGHT))    
     bg_img = pg.image.load("fig/pg_bg.jpg")
     bird = Bird((300, 200))
-    bombs = [Bomb((255, 0, 0), 10) for _ in range(NUM_OF_BOMBS)]
+    bombs = [Bomb((255, 0, 0), 10) for _ in range(NUM_OF_BOMBS)]  # 不要な変数を使うときは_で表す
     score = Score()
     game_score = 0
     beam_list = []
@@ -240,60 +223,38 @@ def main():
                 beam_list.append(beam)            
         screen.blit(bg_img, [0, 0])
         if beam_list is not None:
-        #     if bird.rct.colliderect(bomb.rct):
-        #         # ゲームオーバー時に，こうかとん画像を切り替え，1秒間表示させる
-        #         bird.change_img(8, screen)
-        #         pg.display.update()
-        #         time.sleep(1)
-        #         fonto = pg.font.Font(None, 80)
-        #         txt = fonto.render("Game Over", True, (255, 0, 0))
-        #         screen.blit(txt, [WIDTH//2-150, HEIGHT//2])
-        #         pg.display.update()
-        #         time.sleep(5)
-        #         return
-        # if beam and bomb is not None:
-        #     if bomb.rct.colliderect(beam.rct):
-        #         # 爆弾とビームが衝突した際にBeamインスタンス，Bombインスタンスを消滅
-        #         beam = None
-        #         bomb = None
-        #         bird.change_img(6, screen)
             for bomb in bombs:
                 if bird.rct.colliderect(bomb.rct):
                     # ゲームオーバー時に，こうかとん画像を切り替え，1秒間表示させる
                     bird.change_img(8, screen)
-                    pg.display.update()
-                    time.sleep(1)
                     fonto = pg.font.Font(None, 80)
                     txt = fonto.render("Game Over", True, (255, 0, 0))
                     screen.blit(txt, [WIDTH//2-150, HEIGHT//2])
                     pg.display.update()
-                    time.sleep(5)
+                    time.sleep(1)
                     return
 
             for i, bomb in enumerate(bombs):
-                if bomb is not None:
-                    for b, beam_obj in enumerate(beam_list):
-                        if beam_obj is not None and beam_obj.rct.colliderect(bomb.rct):
-                            # 爆弾とビームが衝突した際にBeamインスタンス，Bombインスタンスを消滅
-                            explosion = Explosion(bomb.rct.center, 15)
-                            explosion_list.append(explosion)
-                            beam_list[b] = None
-                            bombs[i] = None
-                            bird.change_img(6, screen)
-                            game_score += 1
-                            pg.display.update()
-                            break
+                for b, beam_obj in enumerate(beam_list):
+                    if beam_obj.rct.colliderect(bomb.rct):
+                        # 爆弾とビームが衝突した際にBeamインスタンス，Bombインスタンスを消滅
+                        explosion = Explosion(bomb.rct.center, 15)
+                        explosion_list.append(explosion)
+                        beam_list[b] = None
+                        bombs[i] = None
+                        bird.change_img(6, screen)  # よろこびエフェクト
+                        bombs = [bomb for bomb in bombs if bomb is not None]
+                        beam_list = [beam_obj for beam_obj in beam_list if beam_obj is not None]
+                        game_score += 1
+                        pg.display.update()
+                        break 
                     
         
-        # Noneでない要素だけを残したい新しいリストを作成，再代入
-        new_beam_list = []
+        # 画面の範囲外に出たらリストから削除する
         for beam_obj in beam_list:
-            if beam_obj is not None:
-                beam_obj.update(screen)
-                if check_bound(beam_obj.rct) == (True, True):
-                    new_beam_list.append(beam_obj)
-        beam_list = new_beam_list
-        bombs = [bomb for bomb in bombs if bomb is not None]
+            beam_obj.update(screen)
+            if check_bound(beam_obj.rct) != (True, True):
+                beam_list.remove(beam_obj)
         
         new_explosion_list = []
         for explosion in explosion_list:
